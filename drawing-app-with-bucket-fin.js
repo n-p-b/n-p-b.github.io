@@ -378,7 +378,7 @@ drawColorSwatch = function (color, x, y) {
 
 				pressDrawing = function (e) {
 
-					// Mouse down location
+					
 					var mouseX = e.pageX - this.offsetLeft,
 						mouseY = e.pageY - this.offsetTop;
 
@@ -458,7 +458,7 @@ drawColorSwatch = function (color, x, y) {
 			if (typeof G_vmlCanvasManager !== "undefined") {
 				canvasElement = G_vmlCanvasManager.initElement(canvasElement);
 			}
-			context = canvasElement.getContext("2d"); // Grab the 2d canvas context
+			context = canvasElement.getContext("2d"); 
 			
 			canvasElement = document.createElement('canvas');
 			canvasElement.setAttribute('width', drawingAreaWidth);
@@ -470,7 +470,7 @@ drawColorSwatch = function (color, x, y) {
 			if (typeof G_vmlCanvasManager !== "undefined") {
 				canvasElement = G_vmlCanvasManager.initElement(canvasElement);
 			}
-			contexts.drawing = canvasElement.getContext("2d"); // Grab the 2d canvas context
+			contexts.drawing = canvasElement.getContext("2d"); 
 
 			canvasElement = document.createElement('canvas');
 			canvasElement.setAttribute('width', drawingAreaWidth);
@@ -482,7 +482,7 @@ drawColorSwatch = function (color, x, y) {
 			if (typeof G_vmlCanvasManager !== "undefined") {
 				canvasElement = G_vmlCanvasManager.initElement(canvasElement);
 			}
-			contexts.texture = canvasElement.getContext("2d"); // Grab the 2d canvas context
+			contexts.texture = canvasElement.getContext("2d"); 
 
 			canvasElement = document.createElement('canvas');
 			canvasElement.setAttribute('width', drawingAreaWidth);
@@ -494,7 +494,7 @@ drawColorSwatch = function (color, x, y) {
 			if (typeof G_vmlCanvasManager !== "undefined") {
 				canvasElement = G_vmlCanvasManager.initElement(canvasElement);
 			}
-			contexts.outline = canvasElement.getContext("2d"); // Grab the 2d canvas context
+			contexts.outline = canvasElement.getContext("2d"); 
 			
 			
 			crayonImage.onload = resourceLoaded;
