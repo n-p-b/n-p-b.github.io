@@ -13,6 +13,10 @@
 			user-select: none;
     	}
     </style>
+    <script
+            src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+            crossorigin="anonymous"></script>
   </head>
   <body>
     <div id="canvasDiv"><canvas id="gui" height="260" width="490"></canvas>
@@ -24,7 +28,12 @@
     <!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
     <script type="text/javascript" src="Coloring.js"></script>
     <script type="text/javascript">
-    	 drawingApp.init();
+
+    	 $(document).ready(function(){
+    	     drawingApp.init();
+    	     console.log("ready");
+    	     //$("#gui").trigger("click")
+         })
 	</script>
   
 </body></html>
