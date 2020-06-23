@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+    <title>Курсач</title>
+    <style>
+    	canvas {
+    		position: absolute;
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+    	}
+    </style>
+  </head>
+  <body>
+    <div id="canvasDiv"><canvas id="gui" height="260" width="490"></canvas>
+        <canvas style="margin-left: 111px; margin-top: 11px;" id="drawing" height="239" width="267"></canvas>
+        <canvas style="margin-left: 111px; margin-top: 11px; display: none;" id="outline" height="239" width="267"></canvas>
+        <canvas style="margin-left: 111px; margin-top: 11px;" id="outline" height="239" width="267">
+
+        </canvas></div>
+    <!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
+    <script type="text/javascript" src="Coloring.js"></script>
+    <script type="text/javascript">
+    	 drawingApp.init();
+	</script>
+  
+</body></html>
