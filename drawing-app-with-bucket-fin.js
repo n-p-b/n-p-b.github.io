@@ -181,7 +181,24 @@ drawColorSwatch = function (color, x, y) {
 				context.drawImage(eraserImage, 135, 35, mediumImageWidth, mediumImageHeight);
 
 			}
+			if (curTool === "bucket") {
+				context.drawImage(bucketBackgroundImage, 0, 0, canvasWidth, canvasHeight);
+				contexts.drawing.putImageData(colorLayerData, 0, 0, 0, 0, drawingAreaWidth, drawingAreaHeight);
+				// рисует цвета
+				locX = 52;
+				locY = 19;
+				drawColorSwatch(colorPurple, locX, locY);
 
+				locY += 46;
+				drawColorSwatch(colorGreen, locX, locY);
+
+				locY += 46;
+				drawColorSwatch(colorYellow, locX, locY);
+
+				locY += 46;
+				drawColorSwatch(colorBlue, locX, locY);
+
+				} else {
 	 
 
 				//установка метки размера
@@ -271,12 +288,145 @@ drawColorSwatch = function (color, x, y) {
 			// убирает ТЕКСТУРу КАРАНДАША
 	
 				contexts.texture.canvas.style.display = "none";
-			
+			}	
+		},
+		matchOutlineColor = function (r, g, b, a) {
+
+			return (r + g + b < 100 && a === 255);
+		},
+
+		matchStartColor = function (pixelPos, startR, startG, startB) {
+
+			var r = outlineLayerData.data[pixelPos],
+				g = outlineLayerData.data[pixelPos + 1],
+				b = outlineLayerData.data[pixelPos + 2],
+				a = outlineLayerData.data[pixelPos + 3];
+
+
+			if (matchOutlineColor(r, g, b, a)) {
+				return false;
+			}
+
+			r = colorLayerData.data[pixelPos];
+			g = colorLayerData.data[pixelPos + 1];
+			b = colorLayerData.data[pixelPos + 2];
+
+
+			if (r === startR && g === startG && b === startB) {
+				return true;
+			}
+
+
+			if (r === curColor.r && g === curColor.g && b === curColor.b) {
+				return false;
+			}
+
+
+			return (Math.abs(r - startR) + Math.abs(g - startG) + Math.abs(b - startB) < 255);
+		},
+
+		colorPixel = function (pixelPos, r, g, b, a) {
+
+			colorLayerData.data[pixelPos] = r;
+			colorLayerData.data[pixelPos + 1] = g;
+			colorLayerData.data[pixelPos + 2] = b;
+			colorLayerData.data[pixelPos + 3] = a !== undefined ? a : 255;
+		},
+
+		floodFill = function (startX, startY, startR, startG, startB) {
+
+			var newPos,
+				x,
+				y,
+				pixelPos,
+				reachLeft,
+				reachRight,
+				drawingBoundLeft = 0,
+				drawingBoundTop = 0,
+				drawingBoundRight = drawingAreaWidth - 1,
+				drawingBoundBottom = drawingAreaHeight - 1,
+				pixelStack = [[startX, startY]];
+
+			while (pixelStack.length) {
+
+				newPos = pixelStack.pop();
+				x = newPos[0];
+				y = newPos[1];
+
+
+				pixelPos = (y * drawingAreaWidth + x) * 4;
+
+
+				while (y >= drawingBoundTop && matchStartColor(pixelPos, startR, startG, startB)) {
+					y -= 1;
+					pixelPos -= drawingAreaWidth * 4;
+				}
+
+				pixelPos += drawingAreaWidth * 4;
+				y += 1;
+				reachLeft = false;
+				reachRight = false;
+
+
+				while (y <= drawingBoundBottom && matchStartColor(pixelPos, startR, startG, startB)) {
+					y += 1;
+
+					colorPixel(pixelPos, curColor.r, curColor.g, curColor.b);
+
+					if (x > drawingBoundLeft) {
+						if (matchStartColor(pixelPos - 4, startR, startG, startB)) {
+							if (!reachLeft) {
+
+								pixelStack.push([x - 1, y]);
+								reachLeft = true;
+							}
+						} else if (reachLeft) {
+							reachLeft = false;
+						}
+					}
+
+					if (x < drawingBoundRight) {
+						if (matchStartColor(pixelPos + 4, startR, startG, startB)) {
+							if (!reachRight) {
+
+								pixelStack.push([x + 1, y]);
+								reachRight = true;
+							}
+						} else if (reachRight) {
+							reachRight = false;
+						}
+					}
+
+					pixelPos += drawingAreaWidth * 4;
+				}
+			}
 		},
 
 
 
-		
+
+		paintAt = function (startX, startY) {
+
+			var pixelPos = (startY * drawingAreaWidth + startX) * 4,
+				r = colorLayerData.data[pixelPos],
+				g = colorLayerData.data[pixelPos + 1],
+				b = colorLayerData.data[pixelPos + 2],
+				a = colorLayerData.data[pixelPos + 3];
+
+			if (r === curColor.r && g === curColor.g && b === curColor.b) {
+
+				return;
+			}
+
+			if (matchOutlineColor(r, g, b, a)) {
+
+				return;
+			}
+
+			floodFill(startX, startY, r, g, b);
+
+			redraw();
+		},
 
 		
 
@@ -345,72 +495,82 @@ drawColorSwatch = function (color, x, y) {
 						
 							} else if (mouseY < toolHotspotStartY + toolHotspotHeight * 3+10) {
 								curTool = "eraser";
-								
-							} 
+							} else if (mouseY < toolHotspotStartY + toolHotspotHeight * 4) {
+
+								if (curTool !== "bucket") {
+									curTool = "bucket";
+									colorLayerData = contexts.drawing.getImageData(0, 0, drawingAreaWidth, drawingAreaHeight);
+								}
+							}
 						}
 					}
 				}
 			},
 				//отслеживание перемещения мыши по холсту
 				drag = function (e) {
-					
+					if (curTool !== "bucket") {
 						if (paint) {
 							addClick(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true);
 							redraw();
-						
+						}
 					}
-					
+
 					e.preventDefault();
 				},
 
 				release = function () {
-					
+					if (curTool !== "bucket") {
 						paint = false;
-					
+					}
 					redraw();
 				},
 
 				cancel = function () {
-					
+					if (curTool !== "bucket") {
 						paint = false;
-					
+					}
 				},
 
 				pressDrawing = function (e) {
 
-					
+
 					var mouseX = e.pageX - this.offsetLeft,
 						mouseY = e.pageY - this.offsetTop;
 
-					 
+					if (curTool === "bucket") {
+
+						paintAt(mouseX, mouseY);
+					} else {
 						paint = true;
 						addClick(mouseX, mouseY, false);
-					
+					}
 
 					redraw();
 				},
 
 				dragDrawing = function (e) {
-					
+					if (curTool !== "bucket") {
 						if (paint) {
 							addClick(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true);
 							redraw();
-						
+						}
 					}
 
-				
+
 					e.preventDefault();
 				},
 
 				releaseDrawing = function () {
-					
+					if (curTool !== "bucket") {
 						paint = false;
 						redraw();
-					
+					}
 				},
 
 				cancelDrawing = function () {
-					
+					if (curTool === "bucket") {
+						paint = false;
+					}
 				};
 
 			
@@ -458,7 +618,7 @@ drawColorSwatch = function (color, x, y) {
 			if (typeof G_vmlCanvasManager !== "undefined") {
 				canvasElement = G_vmlCanvasManager.initElement(canvasElement);
 			}
-			context = canvasElement.getContext("2d"); 
+			context = canvasElement.getContext("2d"); // Grab the 2d canvas context
 			
 			canvasElement = document.createElement('canvas');
 			canvasElement.setAttribute('width', drawingAreaWidth);
@@ -470,7 +630,7 @@ drawColorSwatch = function (color, x, y) {
 			if (typeof G_vmlCanvasManager !== "undefined") {
 				canvasElement = G_vmlCanvasManager.initElement(canvasElement);
 			}
-			contexts.drawing = canvasElement.getContext("2d"); 
+			contexts.drawing = canvasElement.getContext("2d"); // Grab the 2d canvas context
 
 			canvasElement = document.createElement('canvas');
 			canvasElement.setAttribute('width', drawingAreaWidth);
@@ -482,7 +642,7 @@ drawColorSwatch = function (color, x, y) {
 			if (typeof G_vmlCanvasManager !== "undefined") {
 				canvasElement = G_vmlCanvasManager.initElement(canvasElement);
 			}
-			contexts.texture = canvasElement.getContext("2d"); 
+			contexts.texture = canvasElement.getContext("2d"); // Grab the 2d canvas context
 
 			canvasElement = document.createElement('canvas');
 			canvasElement.setAttribute('width', drawingAreaWidth);
@@ -494,7 +654,7 @@ drawColorSwatch = function (color, x, y) {
 			if (typeof G_vmlCanvasManager !== "undefined") {
 				canvasElement = G_vmlCanvasManager.initElement(canvasElement);
 			}
-			contexts.outline = canvasElement.getContext("2d"); 
+			contexts.outline = canvasElement.getContext("2d"); // Grab the 2d canvas context
 			
 			
 			crayonImage.onload = resourceLoaded;
@@ -529,8 +689,14 @@ drawColorSwatch = function (color, x, y) {
 
 			outlineImage.onload = function () {
 
-				contexts.outline.drawImage(outlineImage, 0,0, drawingAreaWidth, drawingAreaHeight);
-			
+				contexts.outline.drawImage(outlineImage, 0, 0, drawingAreaWidth, drawingAreaHeight);
+
+				try {
+					outlineLayerData = contexts.outline.getImageData(0, 0, drawingAreaWidth, drawingAreaHeight);
+					colorLayerData = contexts.drawing.getImageData(0, 0, drawingAreaWidth, drawingAreaHeight);
+				} catch (ex) {
+
+				}
 				resourceLoaded();
 			};
 			outlineImage.src = "images/canvas1.png";
